@@ -26,6 +26,7 @@ LinearRegression::LinearRegression(const std::string &method,
                  fit_intercept(fit_intercept),
                  fit_flag(false)
 {
+    //Standardize all methods to lower case.
     std::string lower = method;
     std::transform(lower.begin(), lower.end(), lower.begin(),
                    [](unsigned char c){ return std::tolower(c); });
