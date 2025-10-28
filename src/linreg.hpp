@@ -59,8 +59,6 @@ It outlines the structure, key components, and rationale behind the choices to f
 */
 
 #pragma once
-#ifndef LINREG_HPP
-#define LINREG_HPP
 
 #include <Eigen/Dense>
 #include <string>
@@ -68,6 +66,21 @@ It outlines the structure, key components, and rationale behind the choices to f
 
 class LinearRegression{
     public:
+
+        LinearRegression(const std::string &method = "normal_equation",
+                         double l2 = 0.0,
+                         double learning_rate = 0.01,
+                         int epochs = 1000,
+                         bool fit_intercept = true);
+        
+        void fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
+                 const Eigen::Ref<const Eigen::VectorXd> &y);
+
+        Eigen::VectorXd predict(const Eigen::Ref<const Eigen::MatrixXd> &X) const;
+        
+        Eigen::VectorXd coef_() const;
+
+    private:
         Eigen::VectorXd w;
         double b;
         std::string method;
@@ -77,20 +90,4 @@ class LinearRegression{
         bool fit_intercept;
         bool fit_flag; //indicates if fit() has been called.
 
-        LinearRegression(std::string method = "normal_equation",
-                         double l2 = 0.0,
-                         double leanring_rate = 0.01,
-                         int epochs = 1000,
-                         bool fit_intercept = true);
-        
-        void fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
-                 const Eigen::Ref<const Eigen::VectorXd> &y);
-
-        Eigen::VectorXd predict(const Eigen::Ref<const Eigen::MatrixXd> &X) const;
-        Eigen::VectorXd coef_() const;
-        
-    private:
-
 };
-
-#endif
