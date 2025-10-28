@@ -64,10 +64,31 @@ It outlines the structure, key components, and rationale behind the choices to f
 
 #include <Eigen/Dense>
 #include <string>
+#include <stdexcept>
 
 class LinearRegression{
     public:
-    
+        Eigen::VectorXd w;
+        double b;
+        std::string method;
+        double l2;
+        double learning_rate;
+        int epochs;
+        bool fit_intercept;
+        bool fit_flag; //indicates if fit() has been called.
+
+        LinearRegression(std::string method = "normal_equation",
+                         double l2 = 0.0,
+                         double leanring_rate = 0.01,
+                         int epochs = 1000,
+                         bool fit_intercept = true);
+        
+        void fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
+                 const Eigen::Ref<const Eigen::VectorXd> &y);
+
+        Eigen::VectorXd predict(const Eigen::Ref<const Eigen::MatrixXd> &X) const;
+        Eigen::VectorXd coef_() const;
+        
     private:
 
 };
