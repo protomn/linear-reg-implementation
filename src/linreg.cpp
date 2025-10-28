@@ -3,6 +3,13 @@
 #include <string>
 #include <stdexcept>
 
+//A learning point:
+/*
+    Unlike Numpy, Eigen does not support broadcasting in matrix operations.
+    Therefore, to add a bias term to each row of a matrix, we need to
+    explicitly replicate the bias vector across all rows or use other techniques.
+*/
+
 //Defining the constructor.
 
 LinearRegression::LinearRegression(const std::string &method,
@@ -125,8 +132,31 @@ void LinearRegression::fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
 
 Eigen::VectorXd LinearRegression::predict(const Eigen::Ref<const Eigen::MatrixXd> &X) const
 {
+    if (!fit_flag)
+    {
+        throw std::runtime_error("Model has not been fitted yet.");
+    }
+
+    if (X.cols() != w.size())
+    {
+        throw std::invalid_argument("Input feature dimension does not match trained weights.");
+    }
+    
+    Eigen::VectorXd prediction;
+
+    if (fit_intercept)
+    {
+        prediction = X * w + Eigen::VectorXd::Ones(X.rows()) * b;
+    }
+    else
+    {
+        prediction = X * w;
+    }
+
+    return prediction;
 
 }
+
 
 // Defining the coef_ method to return the weights.
 
