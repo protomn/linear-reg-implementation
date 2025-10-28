@@ -145,7 +145,8 @@ Eigen::VectorXd LinearRegression::predict(const Eigen::Ref<const Eigen::MatrixXd
     Eigen::VectorXd prediction;
 
     if (fit_intercept)
-    {
+    {   
+        
         prediction = X * w + Eigen::VectorXd::Ones(X.rows()) * b;
     }
     else
@@ -162,5 +163,12 @@ Eigen::VectorXd LinearRegression::predict(const Eigen::Ref<const Eigen::MatrixXd
 
 Eigen::VectorXd LinearRegression::coef_() const
 {
-
+    if (!fit_flag)
+    {
+        throw std::runtime_error("Model has not been fitted yet."); 
+    }
+    else
+    {
+        return w;
+    }
 }
