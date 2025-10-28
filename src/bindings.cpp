@@ -26,16 +26,15 @@ PYBIND11_MODULE(_core, m)
                 return self; //Return self for method chaining
                },
             py::arg("X"),
-            py::arg("y"));
+            py::arg("y"),
+        py::return_value_policy::reference_internal);
 
     cls.def("predict",
             &LinearRegression::predict,
-            py::arg("X"));
+            py::arg("X"),
+        "Predict target values for sample matrix X.");
     
     cls.def("coef_",
-            &LinearRegression::coef_);
+            &LinearRegression::coef_,
+        "Returned learned coefficient vector w.");
 }
-
-
-
-
