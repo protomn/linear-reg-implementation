@@ -57,3 +57,11 @@ print(f"C++ Normal Equation: {cpp_ne_time:.4f}s")
 print(f"Python OLS:          {sk_lr_time:.4f}s")
 print(f"C++ Gradient Descent:{cpp_gd_time:.4f}s")
 print(f"Python SGD:          {sk_gd_time:.4f}s")
+
+
+plt.plot(cpp_gd.loss_curve_())
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("Gradient Descent Convergence Plot.")
+plt.grid(True)
+plt.show()
