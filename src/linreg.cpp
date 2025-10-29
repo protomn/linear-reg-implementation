@@ -19,7 +19,10 @@ LinearRegression::LinearRegression(const std::string &method,
                                    double learning_rate,
                                    int epochs,
                                    bool fit_intercept,
-                                   int batch_size)
+                                   int batch_size,
+                                   double tol,
+                                   int patience,
+                                   double momentum)
                 :w(),
                  b(0.0),
                  method(method),
@@ -28,12 +31,17 @@ LinearRegression::LinearRegression(const std::string &method,
                  epochs(epochs),
                  fit_intercept(fit_intercept),
                  fit_flag(false),
-                 batch_size(batch_size)
+                 batch_size(batch_size),
+                 tol(tol),
+                 patience(patience),
+                 momentum(momentum)
 {
     //Standardize all methods to lower case.
     std::string lower = method;
     std::transform(lower.begin(), lower.end(), lower.begin(),
                    [](unsigned char c){ return std::tolower(c); });
+
+    //All validation checks.
 
     if (learning_rate <= 0.0 && method == "gradient_descent")
     {
@@ -63,6 +71,21 @@ LinearRegression::LinearRegression(const std::string &method,
     if (epochs <= 0 && method == "gradient_descent") 
     {
         throw std::invalid_argument("Epochs must be positive for gradient descent.");
+    }
+
+    if (tol <= 0.0)
+    {
+        throw std::invalid_argument("Tolerance must be positive.");
+    }
+
+    if (patience <= 0)
+    {
+        throw std::invalid_argument("Patience must be positive.");
+    }
+
+    if (momentum <0.0 || momentum >= 1.0)
+    {
+        throw std::invalid_argument("Momentum must be in the range [0.0, 1.0).]");
     }
 }
 
@@ -158,10 +181,17 @@ void LinearRegression::fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
         b = 0.0;
         loss_curve.clear(); //Clearing previous loss values if any.
 
+        //Initializing momentum terms (velocity vectors).
+        Eigen::VectorXd v_w = Eigen::VectorXd::Zero(w.size());
+        double v_b = 0.0;
+
         if (batch_size > 0 && batch_size < n_samples)
         {
             Eigen::MatrixXd X_batch(batch_size, n_features);
             Eigen::VectorXd y_batch(batch_size);
+
+            double prev_loss = std::numeric_limits<double>::infinity();
+            int no_improvement = 0;
 
             for (int epoch = 0; epoch < epochs; ++epoch)
             {
@@ -195,27 +225,54 @@ void LinearRegression::fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
 
                     double grad_b = fit_intercept ? error.mean() : 0.0;
 
-                    w -= learning_rate * grad_w;
+                    v_w = momentum * v_w +(1.0 - momentum) * grad_w;
+                    w -= learning_rate * v_w;
+
                     if (fit_intercept)
                     {
-                        b -= learning_rate * grad_b;
+                        v_b = momentum * v_b + (1.0 - momentum) * grad_b;
+                        b -= learning_rate * v_b;
                     }
 
                 }
 
+                Eigen::VectorXd bias_vec = Eigen::VectorXd::Constant(X.rows(), b);
+                double loss = (X * w + (fit_intercept ? bias_vec : Eigen::VectorXd::Zero(n_samples)) - y).squaredNorm() / (2.0 * n_samples);
+
                 if (epoch%100 == 0)
                 {  
-                    Eigen::VectorXd bias_vec = Eigen::VectorXd::Constant(X.rows(), b);
-                    double loss = (X * w + (fit_intercept ? bias_vec : Eigen::VectorXd::Zero(n_samples)) - y).squaredNorm() / (2.0 * n_samples);
                     loss_curve.push_back(loss);
                     std::cout << "Epoch: " << epoch << " Loss: " << loss << std::endl;
                 }
+
+                //Early stopping logic.
+
+                if (std::abs(prev_loss - loss) < tol)
+                {
+                    ++no_improvement;
+                    if (no_improvement >= patience)
+                    {
+                        std::cout << "Early stopping triggered at epoch " << epoch
+                                  << " (Δloss < " << tol
+                                  << " for " << patience << " consecutive checks)\n";
+                        break;
+                    }
+                }
+                else
+                {
+                    no_improvement = 0; //resets if improvement is seen.
+                }
+
+                prev_loss = loss;
             }
             
         }
         else
         {
             batch_size = n_samples;
+            double prev_loss = std::numeric_limits<double>::infinity();
+            int no_improvement = 0;
+
 
             for (int i = 0; i < epochs; ++i)
             {
@@ -239,18 +296,42 @@ void LinearRegression::fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
                     grad_b = error.mean();
                 }
 
-                w -= learning_rate * grad_w;
+                v_w = momentum * v_w +(1.0 - momentum) * grad_w;
+                w -= learning_rate * v_w;
+
                 if (fit_intercept)
                 {
-                    b -= learning_rate * grad_b;
+                    v_b = momentum * v_b + (1.0 - momentum) * grad_b;
+                    b -= learning_rate * v_b;
                 }
+
+                double loss = (error.squaredNorm()/(2 * n_samples));
 
                 if (i%100 == 0)
                 {
-                    double loss = (error.squaredNorm()/(2 * n_samples));
                     loss_curve.push_back(loss); //Storing loss for this epoch.
                     std::cout << "Epoch: " << i << " Loss: " << loss << std::endl;
                 }
+
+                //Early stopping logic.
+
+                if (std::abs(prev_loss - loss) < tol)
+                {
+                    ++no_improvement;
+                    if (no_improvement >= patience)
+                    {
+                        std::cout << "Early stopping triggered at epoch " << i
+                                  << " (Δloss < " << tol
+                                  << " for " << patience << " consecutive checks)\n";
+                        break;
+                    }
+                }
+                else
+                {
+                    no_improvement = 0; //resets if improvement is seen.
+                }
+
+                prev_loss = loss;
             }
         }
         
@@ -262,8 +343,6 @@ void LinearRegression::fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
     {
         throw std::invalid_argument("Unsupported training method: " + method);
     }
-
-    
 }
 
 // Defining the predict method algorithm.

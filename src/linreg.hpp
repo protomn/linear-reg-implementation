@@ -84,8 +84,8 @@ class LinearRegression{
 
         Eigen::VectorXd coef_() const;
 
-        void save(const std::string &path) const;
-        void load(const std::string &path);
+        //void save(const std::string &path) const;
+        //void load(const std::string &path);
 
         const std::vector<double> &loss_curve_() const
         {
