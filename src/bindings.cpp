@@ -15,7 +15,7 @@ PYBIND11_MODULE(_core, m)
 
     cls.def(py::init<const std::string &, double, double, int, bool, int>(),
             py::arg("method") = "normal_equation", py::arg("l2") = 0.0, py::arg("learning_rate") = 0.01,
-            py::arg("epochs") = 1000, py::arg("fit_intercept") = true, py::arg("batch_size") = 0.0);
+            py::arg("epochs") = 1000, py::arg("fit_intercept") = true, py::arg("batch_size") = 0);
 
     cls.def("fit",
             [](LinearRegression &self,

@@ -67,12 +67,12 @@ It outlines the structure, key components, and rationale behind the choices to f
 class LinearRegression{
     public:
 
-        LinearRegression(const std::string &method,
-                         double l2,
-                         double learning_rate,
-                         int epochs,
-                         bool fit_intercept,
-                         int batch_size); //Full batch by default.
+        LinearRegression(const std::string &method = "normal_equation",
+                         double l2 = 0.0,
+                         double learning_rate = 0.01,
+                         int epochs = 1000,
+                         bool fit_intercept = true,
+                         int batch_size = 0); //Full batch by default.
         
         void fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
                  const Eigen::Ref<const Eigen::VectorXd> &y);
