@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
+#include <numeric> //for std::iota
+#include <random> // for std::mt19937
 
 //A learning point:
 /*
@@ -16,7 +18,8 @@ LinearRegression::LinearRegression(const std::string &method,
                                    double l2,
                                    double learning_rate,
                                    int epochs,
-                                   bool fit_intercept)
+                                   bool fit_intercept,
+                                   int batch_size)
                 :w(),
                  b(0.0),
                  method(method),
@@ -24,7 +27,8 @@ LinearRegression::LinearRegression(const std::string &method,
                  learning_rate(learning_rate),
                  epochs(epochs),
                  fit_intercept(fit_intercept),
-                 fit_flag(false)
+                 fit_flag(false),
+                 batch_size(batch_size)
 {
     //Standardize all methods to lower case.
     std::string lower = method;
@@ -34,6 +38,11 @@ LinearRegression::LinearRegression(const std::string &method,
     if (learning_rate <= 0.0 && method == "gradient_descent")
     {
         throw std::invalid_argument("Learning rate must always be positive.");
+    }
+
+    if (batch_size < 0)
+    {
+        throw std::invalid_argument("Batch size cannot be negative.");
     }
 
     if (learning_rate > 1.0)
@@ -136,13 +145,77 @@ void LinearRegression::fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
         std::cout << "Training complete. Coefficients: " << w.transpose() << ", bias: " << b << std::endl;
         }
     
-        else if (method == "gradient_descent")
+    else if (method == "gradient_descent")
+    {
+        const auto n_samples = X.rows();
+        const auto n_features = X.cols();
+        std::vector<int> indices(n_samples);
+        std::iota(indices.begin(), indices.end(), 0);
+        std::random_device rd;
+        std::mt19937 rng(rd()); //Fixed random seed for reproducibility (same as python seed).
+
+        w = Eigen::VectorXd::Zero(X.cols());
+        b = 0.0;
+        loss_curve.clear(); //Clearing previous loss values if any.
+
+        if (batch_size > 0 && batch_size < n_samples)
         {
-            const auto n_samples = X.rows();
-            const auto n_features = X.cols();
-            w = Eigen::VectorXd::Zero(X.cols());
-            b = 0.0;
-            loss_curve.clear(); //Clearing previous loss values if any.
+            Eigen::MatrixXd X_batch(batch_size, n_features);
+            Eigen::VectorXd y_batch(batch_size);
+
+            for (int epoch = 0; epoch < epochs; ++epoch)
+            {
+                std::shuffle(indices.begin(), indices.end(), rng);
+
+                for (int start = 0; start < n_samples; start += batch_size)
+                {
+                    int end = std::min(start + static_cast<Eigen::Index>(batch_size), n_samples);
+                    int curr_batch = end - start;
+
+                    //Allocate buffers once per epoch, then reuse them for every mini-batch.
+                    //To reduce heap churn.
+                    X_batch.block(0,0, curr_batch, n_features) = X.middleRows(start, curr_batch);
+                    y_batch.head(curr_batch) = y.segment(start, curr_batch);
+
+                    Eigen::VectorXd y_pred = X_batch * w;
+
+                    if (fit_intercept)
+                    {
+                        y_pred.array() += b;
+                    }
+
+                    Eigen::VectorXd error = y_pred - y_batch;
+
+                    Eigen::VectorXd grad_w = (X_batch.transpose() * error)/curr_batch;
+
+                    if (l2 >0.0)
+                    {
+                        grad_w += (l2/curr_batch) * w;
+                    }
+
+                    double grad_b = fit_intercept ? error.mean() : 0.0;
+
+                    w -= learning_rate * grad_w;
+                    if (fit_intercept)
+                    {
+                        b -= learning_rate * grad_b;
+                    }
+
+                }
+
+                if (epoch%100 == 0)
+                {  
+                    Eigen::VectorXd bias_vec = Eigen::VectorXd::Constant(X.rows(), b);
+                    double loss = (X * w + (fit_intercept ? bias_vec : Eigen::VectorXd::Zero(n_samples)) - y).squaredNorm() / (2.0 * n_samples);
+                    loss_curve.push_back(loss);
+                    std::cout << "Epoch: " << epoch << " Loss: " << loss << std::endl;
+                }
+            }
+            
+        }
+        else
+        {
+            batch_size = n_samples;
 
             for (int i = 0; i < epochs; ++i)
             {
@@ -179,15 +252,16 @@ void LinearRegression::fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
                     std::cout << "Epoch: " << i << " Loss: " << loss << std::endl;
                 }
             }
-
-            fit_flag = true;
-            std::cout << "Training complete. Coefficients: " << w.transpose() << ", bias: " << b << std::endl;
         }
+        
+        fit_flag = true;
+        std::cout << "Training complete. Coefficients: " << w.transpose() << ", bias: " << b << std::endl;
+    }
 
-        else
-        {
-            throw std::invalid_argument("Unsupported training method: " + method);
-        }
+    else
+    {
+        throw std::invalid_argument("Unsupported training method: " + method);
+    }
 
     
 }
