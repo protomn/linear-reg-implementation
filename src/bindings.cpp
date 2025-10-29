@@ -37,4 +37,8 @@ PYBIND11_MODULE(_core, m)
     cls.def("coef_",
             &LinearRegression::coef_,
         "Returned learned coefficient vector w.");
+
+    cls.def("loss_curve_",
+            &LinearRegression::loss_curve_,
+        "Returns the loss values recorded at every 100 epochs during training.");
 }

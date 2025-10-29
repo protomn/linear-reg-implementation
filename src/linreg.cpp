@@ -142,6 +142,7 @@ void LinearRegression::fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
             const auto n_features = X.cols();
             w = Eigen::VectorXd::Zero(X.cols());
             b = 0.0;
+            loss_curve.clear(); //Clearing previous loss values if any.
 
             for (int i = 0; i < epochs; ++i)
             {
@@ -174,6 +175,7 @@ void LinearRegression::fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
                 if (i%100 == 0)
                 {
                     double loss = (error.squaredNorm()/(2 * n_samples));
+                    loss_curve.push_back(loss); //Storing loss for this epoch.
                     std::cout << "Epoch: " << i << " Loss: " << loss << std::endl;
                 }
             }
