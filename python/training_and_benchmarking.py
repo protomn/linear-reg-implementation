@@ -30,9 +30,15 @@ cpp_ne_time = time.perf_counter() - start
 
 #2. CPP Gradient Descent
 start = time.perf_counter()
-cpp_gd = lr(method = "gradient_descent", learning_rate = 0.01, epochs = 3000)
+cpp_gd = lr(method = "gradient_descent", learning_rate = 0.01, epochs = 3000, batch_size = 0)
 cpp_gd.fit(np.ascontiguousarray(X, np.float64), np.ascontiguousarray(y, np.float64))
 cpp_gd_time = time.perf_counter() - start
+
+#5. Mini-batch GD in CPP
+start = time.perf_counter()
+cpp_mini_gd = lr(method = "gradient_descent", learning_rate = 0.01, epochs = 20, batch_size = 512)
+cpp_mini_gd.fit(np.ascontiguousarray(X, np.float64), np.ascontiguousarray(y, np.float64))
+cpp_mini_gd_time = time.perf_counter() - start
 
 #Benchmarking Scikit-learn Equivalents
 
@@ -57,9 +63,11 @@ print(f"C++ Normal Equation: {cpp_ne_time:.4f}s")
 print(f"Python OLS:          {sk_lr_time:.4f}s")
 print(f"C++ Gradient Descent:{cpp_gd_time:.4f}s")
 print(f"Python SGD:          {sk_gd_time:.4f}s")
+print(f"C++ Batch GD Time:   {cpp_mini_gd_time:.4f}s")
 
 
-plt.plot(cpp_gd.loss_curve_())
+plt.plot(cpp_gd.loss_curve_(), label = "Full batch")
+plt.plot(cpp_mini_gd.loss_curve_(), label = "Mini batch")
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.title("Gradient Descent Convergence Plot.")
