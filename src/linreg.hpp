@@ -82,7 +82,7 @@ class LinearRegression{
 
         const std::vector<double> &loss_curve_() const
         {
-            return loss_curve;
+            return loss_curve; //Getter for loss curve
         }
 
     private:
