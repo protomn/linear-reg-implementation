@@ -77,8 +77,13 @@ class LinearRegression{
                  const Eigen::Ref<const Eigen::VectorXd> &y);
 
         Eigen::VectorXd predict(const Eigen::Ref<const Eigen::MatrixXd> &X) const;
-        
+
         Eigen::VectorXd coef_() const;
+
+        const std::vector<double> &loss_curve_() const
+        {
+            return loss_curve;
+        }
 
     private:
         Eigen::VectorXd w;
@@ -89,5 +94,7 @@ class LinearRegression{
         int epochs;
         bool fit_intercept;
         bool fit_flag; //indicates if fit() has been called.
+
+        std::vector<double> loss_curve; //To expose per epoch losses in CPP.
 
 };
