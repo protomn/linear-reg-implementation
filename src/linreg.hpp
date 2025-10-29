@@ -71,7 +71,8 @@ class LinearRegression{
                          double l2 = 0.0,
                          double learning_rate = 0.01,
                          int epochs = 1000,
-                         bool fit_intercept = true);
+                         bool fit_intercept = true,
+                         int batch_size = 0); //Full batch by default.
         
         void fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
                  const Eigen::Ref<const Eigen::VectorXd> &y);
@@ -94,6 +95,7 @@ class LinearRegression{
         int epochs;
         bool fit_intercept;
         bool fit_flag; //indicates if fit() has been called.
+        int batch_size; //Mini-batch implementation.
 
         std::vector<double> loss_curve; //To expose per epoch losses in CPP.
 
