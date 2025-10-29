@@ -72,7 +72,10 @@ class LinearRegression{
                          double learning_rate = 0.01,
                          int epochs = 1000,
                          bool fit_intercept = true,
-                         int batch_size = 0); //Full batch by default.
+                         int batch_size = 0, //Full batch by default.
+                         double tol = 1e-6,
+                         int patience = 10,
+                         double momentum = 9); 
         
         void fit(const Eigen::Ref<const Eigen::MatrixXd> &X,
                  const Eigen::Ref<const Eigen::VectorXd> &y);
@@ -80,6 +83,9 @@ class LinearRegression{
         Eigen::VectorXd predict(const Eigen::Ref<const Eigen::MatrixXd> &X) const;
 
         Eigen::VectorXd coef_() const;
+
+        void save(const std::string &path) const;
+        void load(const std::string &path);
 
         const std::vector<double> &loss_curve_() const
         {
@@ -96,6 +102,10 @@ class LinearRegression{
         bool fit_intercept;
         bool fit_flag; //indicates if fit() has been called.
         int batch_size; //Mini-batch implementation.
+
+        double tol; //Early stopping tolerance
+        int patience; //number of epochs with < tol improvement
+        double momentum; //momentum factor for gradient descent
 
         std::vector<double> loss_curve; //To expose per epoch losses in CPP.
 
