@@ -92,6 +92,17 @@ class LinearRegression{
             return loss_curve; //Getter for loss curve
         }
 
+        //Evaluation Metrics
+
+        double rmse_(const Eigen::Ref<const Eigen::MatrixXd> &X,
+                     const Eigen::Ref<Eigen::VectorXd> &y) const;
+        
+        double mae_(const Eigen::Ref<const Eigen::MatrixXd> &X,
+                    const Eigen::Ref<Eigen::VectorXd> &y) const;
+        
+        double r2_score_(const Eigen::Ref<const Eigen::MatrixXd> &X,
+                         const Eigen::Ref<Eigen::VectorXd> &y) const;
+
     private:
         Eigen::VectorXd w;
         double b;
