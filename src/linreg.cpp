@@ -375,6 +375,33 @@ Eigen::VectorXd LinearRegression::predict(const Eigen::Ref<const Eigen::MatrixXd
 
 }
 
+// Implementing Evaluation Methods
+
+double LinearRegression::rmse_(const Eigen::Ref<const Eigen::MatrixXd> &X,
+                               const Eigen::Ref<const Eigen::VectorXd> &y) const
+{
+    Eigen::VectorXd y_pred = predict(X);
+    Eigen::VectorXd difference = y_pred - y;
+    return std::sqrt(difference.array().square().mean());
+}
+
+double LinearRegression::mae_(const Eigen::Ref<const Eigen::MatrixXd> &X,
+                              const Eigen::Ref<const Eigen::VectorXd> &y) const
+{
+    Eigen::VectorXd y_pred = predict(X);
+    Eigen::VectorXd difference = (y_pred - y).array().abs();
+    return difference.mean();
+}
+
+double LinearRegression::r2_score_(const Eigen::Ref<const Eigen::MatrixXd> &X,
+                                   const Eigen::Ref<const Eigen::VectorXd> &y) const
+{
+    Eigen::VectorXd y_pred = predict(X);
+    double ss_res = (y_pred - y).squaredNorm();
+    double ss_total = (y.array() - y.mean()).matrix().squaredNorm();
+    return 1.0 - (ss_res/ss_total);
+}
+
 
 // Defining the coef_ method to return the weights.
 
