@@ -95,7 +95,7 @@ class LinearRegression{
         //Evaluation Metrics
 
         double rmse_(const Eigen::Ref<const Eigen::MatrixXd> &X,
-                     const Eigen::Ref<Eigen::VectorXd> &y) const;
+                     const Eigen::Ref<const Eigen::VectorXd> &y) const;
         
         double mae_(const Eigen::Ref<const Eigen::MatrixXd> &X,
                     const Eigen::Ref<Eigen::VectorXd> &y) const;
