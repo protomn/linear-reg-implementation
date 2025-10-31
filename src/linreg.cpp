@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <numeric> //for std::iota
 #include <random> // for std::mt19937
+#include <cmath> //for std::sqrt
 
 //A learning point:
 /*
