@@ -42,4 +42,10 @@ PYBIND11_MODULE(_core, m)
     cls.def("loss_curve_",
             &LinearRegression::loss_curve_,
         "Returns the loss values recorded at every 100 epochs during training.");
+
+    cls.def("rmse_", &LinearRegression::rmse_, py::arg("X"), py::arg("y"));
+
+    cls.def("mae_", &LinearRegression::mae_, py::arg("X"), py::arg("y"));
+
+    cls.def("r2_score_", &LinearRegression::r2_score_, py::arg("X"), py::arg("y"));
 }
